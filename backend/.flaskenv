@@ -1,0 +1,1 @@
+FLASK_APP=inventory_app.py
