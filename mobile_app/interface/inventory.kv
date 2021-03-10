@@ -1,0 +1,78 @@
+WindowManager:
+    MainWindow:
+    OutsView:
+    EntriesView:
+    CreateOut:
+    CreateEntry:
+
+<MainWindow>:
+    name: "main"
+
+    GridLayout:
+        cols:1
+        Label:
+            text: "List will be here"
+
+        GridLayout:
+            cols: 2
+            Button:
+                text: "Ver Salidas"
+                on_release:
+                    app.root.current = "outs_view"
+                    root.manager.transition.direction = "right"
+            Button:
+                text: "Ver Entradas"
+                on_release:
+                    app.root.current = "entries_view"
+                    root.manager.transition.direction = "left"
+            Button:
+                text: "Crear Salida"
+                on_release:
+                    app.root.current = "create_out"
+                    root.manager.transition.direction = "right"
+            Button:
+                text: "Crear Entrada"
+                on_release:
+                    app.root.current = "create_entry"
+                    root.manager.transition.direction = "left"
+
+
+<OutsView>:
+    name: "outs_view"
+
+    Button:
+        text: "Go Back"
+        on_release:
+            app.root.current = "main"
+            root.manager.transition.direction = "left"
+
+<EntriesView>:
+    name: "entries_view"
+
+    Button:
+        text: "Go Back"
+        on_release:
+            app.root.current = "main"
+            root.manager.transition.direction = "right"
+
+<CreateOut>:
+    name: "create_out"
+    GridLayout:
+        cols:1
+        OutForm:
+        Button:
+            text: "Regresar"
+            on_release:
+                app.root.current = "main"
+                root.manager.transition.direction = "left"
+
+<CreateEntry>:
+    name: "create_entry"
+    GridLayout:
+        cols:1
+        EntryForm:
+        Button:
+            text: "Regresar"
+            on_release:
+                app.root.current = "main"
+                root.manager.transition.direction = "right"
