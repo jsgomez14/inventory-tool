@@ -1,6 +1,7 @@
 from app import app
 from flask import request
 from flask_pymongo import PyMongo
+import pytz
 import os
 from datetime import datetime,timezone 
 
@@ -34,11 +35,19 @@ def index():
 
 @app.route('/product', methods=["GET"])
 def get_products():
-    return {'result': parse_products(products.find())}
+    product_id = request.args.get('id')
+    resp = None
+    if product_id:
+        resp = {'result': parse_products(products.find({'id': int(product_id)}))}
+    return {'result': parse_products(products.find())} if resp is None else resp
 
 @app.route('/provider', methods=["GET"])
 def get_providers():
-    return {'result':parse_providers(providers.find())}
+    provider_id = request.args.get('id')
+    resp = None
+    if provider_id:
+        resp = {'result': parse_providers(providers.find({'id': int(provider_id)}))}
+    return {'result':parse_providers(providers.find())} if resp is None else resp
 
 @app.route('/entry', methods=["GET"])
 def get_entries():
@@ -50,6 +59,7 @@ def get_outs():
 
 @app.route('/stock_summary', methods=["GET"])
 def get_stocks_summary():
+    #TODO: Agregar product name/measure
     return {'result' : parse_stocks_summary(stocks_summary.find())}
 
 @app.route('/entry', methods=["POST"])
@@ -57,6 +67,7 @@ def create_entry():
     result =None
     is_new_prov = False
     new_entry = request.get_json()
+    print("ACAAA ERRORRR", new_entry)
     new_provider = {'id': new_entry["provider_id"], 'name': new_entry["provider_name"]}
     new_product = {'id': new_entry["product_id"],"name":new_entry["product_name"],"provider_id": new_entry["provider_id"],"description":new_entry["product_description"],"measure":new_entry["measure"]}
 
@@ -70,8 +81,9 @@ def create_entry():
         if not is_new_prov:
             result = {'result': provider[0]["name"]+ " has a new product. Entry created succesfully"}
         products.insert_one(new_product)
-
-    curr_time = datetime.now(tz=timezone.utc)
+    
+    utc_datetime = datetime.strptime(new_entry['entry_date'], '%Y-%m-%d %H:%M:%S')
+    curr_time = pytz.timezone('UTC').localize(utc_datetime, is_dst=None)
     entry = {'provider_id':new_entry["provider_id"],'product_id':new_entry["product_id"],'quantity':new_entry["quantity"],'created_at':curr_time}
     entries.insert_one(entry)
     stock_summary = parse_stocks_summary(stocks_summary.find({'product_id': new_entry["product_id"]}))
