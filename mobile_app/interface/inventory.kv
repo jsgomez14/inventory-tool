@@ -7,71 +7,81 @@ WindowManager:
 
 <MainWindow>:
     name: "main"
+    ScrollView:
+        Stock:
 
-    GridLayout:
-        cols:1
-        Label:
-            text: "List will be here"
-
-        GridLayout:
-            cols: 2
-            Button:
-                text: "Ver Salidas"
-                on_release:
-                    app.root.current = "outs_view"
-                    root.manager.transition.direction = "right"
-            Button:
-                text: "Ver Entradas"
-                on_release:
-                    app.root.current = "entries_view"
-                    root.manager.transition.direction = "left"
-            Button:
-                text: "Crear Salida"
-                on_release:
-                    app.root.current = "create_out"
-                    root.manager.transition.direction = "right"
-            Button:
-                text: "Crear Entrada"
-                on_release:
-                    app.root.current = "create_entry"
-                    root.manager.transition.direction = "left"
-
+    MDRectangleFlatButton:
+        text: "Ver Salidas"
+        pos_hint: {'center_x':0.3, 'center_y':0.2}
+        size_hint_x: None
+        on_release:
+            app.root.current = "outs_view"
+            root.manager.transition.direction = "right"
+    MDRectangleFlatButton:
+        text: "Ver Entradas"
+        pos_hint: {'center_x':0.7, 'center_y':0.2}
+        size_hint_x: None
+        on_release:
+            app.root.current = "entries_view"
+            root.manager.transition.direction = "left"
+    MDRectangleFlatButton:
+        text: "Crear Salida"
+        pos_hint: {'center_x':0.3, 'center_y':0.1}
+        size_hint_x: None
+        on_release:
+            app.root.current = "create_out"
+            root.manager.transition.direction = "right"
+    MDRectangleFlatButton:
+        text: "Crear Entrada"
+        pos_hint: {'center_x':0.7, 'center_y':0.1}
+        size_hint_x: None
+        on_release:
+            app.root.current = "create_entry"
+            root.manager.transition.direction = "left"
 
 <OutsView>:
     name: "outs_view"
-
-    Button:
-        text: "Go Back"
+    ScrollView:
+        Out:
+    MDRectangleFlatButton:
+        text: "Regresar"
+        pos_hint: {'center_x':0.5, 'center_y':0.1}
+        size_hint_x: None
         on_release:
             app.root.current = "main"
             root.manager.transition.direction = "left"
 
 <EntriesView>:
     name: "entries_view"
-
-    Button:
-        text: "Go Back"
+    ScrollView:
+        Entry:
+    MDRectangleFlatButton:
+        text: "Regresar"
+        pos_hint: {'center_x':0.5, 'center_y':0.1}
+        size_hint_x: None
         on_release:
             app.root.current = "main"
             root.manager.transition.direction = "right"
 
 <CreateOut>:
     name: "create_out"
-    GridLayout:
+    MDGridLayout:
         cols:1
         OutForm:
-        Button:
+        MDRectangleFlatButton:
             text: "Regresar"
+            pos_hint: {'center_x':0.5, 'center_y':0.1}
+            size_hint_x: None
             on_release:
                 app.root.current = "main"
                 root.manager.transition.direction = "left"
 
 <CreateEntry>:
     name: "create_entry"
-    GridLayout:
+    MDGridLayout:
         cols:1
         EntryForm:
-        Button:
+        MDRectangleFlatButton:
             text: "Regresar"
             on_release:
                 app.root.current = "main"

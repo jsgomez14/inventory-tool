@@ -1,8 +1,13 @@
-from kivy.app import App
+from datetime import datetime, timezone
+import pytz
+from dateutil.tz import tzlocal
+from kivymd.app import MDApp
 from kivy.lang import Builder
-from kivy.uix.widget import Widget
 from kivy.uix.screenmanager import ScreenManager, Screen
+from kivymd.uix.list import MDList, TwoLineListItem
+from kivy.network.urlrequest import UrlRequest
 from interface.form import Form
+import os
 
 class EntryForm(Form):
     def __init__(self, **kwargs):
@@ -49,11 +54,81 @@ class CreateEntry(Screen):
 class WindowManager(ScreenManager):
     pass
 
-kv = Builder.load_file("./interface/inventory.kv")
+class Stock(MDList):
+    def __init__(self, **kwargs):
+        url = 'http://localhost:5000'+'/stock_summary'
+        UrlRequest( url=url#os.getenv("INVENTORY_HOST")
+        , on_success=self.parse_json)
+        super().__init__(**kwargs)
+    def parse_json(self,req, result):
+        for i in result["result"]:
+            keys = ',   '.join(list(i.keys()))
+            values_str = map(lambda x: str(x),list(i.values()))
+            values_local = map(self.utc_to_local,values_str)
+            self.add_widget(TwoLineListItem(text=keys, secondary_text= ',   '.join(list(values_local))))
+    def utc_to_local(self, x):
+        resp = None
+        try:
+            date_record= datetime.strptime(x, '%Y-%m-%d %H:%M:%S')
+            utc_datetime = pytz.timezone('UTC').localize(date_record, is_dst=None)
+            local_datetime_converted = utc_datetime.astimezone(tz=tzlocal())
+            resp = local_datetime_converted.strftime("%Y-%m-%d %H:%M:%S")
+        except Exception as e:
+            resp = x
+        return resp
 
-class InventoryApp(App):
+class Entry(MDList):
+    def __init__(self, **kwargs):
+        url = 'http://localhost:5000'+'/entry'
+        UrlRequest( url=url#os.getenv("INVENTORY_HOST")
+        , on_success=self.parse_json)
+        super().__init__(**kwargs)
+    def parse_json(self,req, result):
+        for i in result["result"]:
+            keys = ',   '.join(list(i.keys()))
+            values_str = map(lambda x: str(x),list(i.values()))
+            values_local = map(self.utc_to_local,values_str)
+            self.add_widget(TwoLineListItem(text=keys, secondary_text= ',   '.join(list(values_local))))
+    def utc_to_local(self, x):
+        resp = None
+        try:
+            date_record= datetime.strptime(x, '%Y-%m-%d %H:%M:%S')
+            utc_datetime = pytz.timezone('UTC').localize(date_record, is_dst=None)
+            local_datetime_converted = utc_datetime.astimezone(tz=tzlocal())
+            resp = local_datetime_converted.strftime("%Y-%m-%d %H:%M:%S")
+        except Exception as e:
+            resp = x
+        return resp
+
+class Out(MDList):
+    def __init__(self, **kwargs):
+        url = 'http://localhost:5000'+'/out'
+        UrlRequest( url=url#os.getenv("INVENTORY_HOST")
+        , on_success=self.parse_json)
+        super().__init__(**kwargs)
+    def parse_json(self,req, result):
+        for i in result["result"]:
+            keys = ',   '.join(list(i.keys()))
+            values_str = map(lambda x: str(x),list(i.values()))
+            values_local = map(self.utc_to_local,values_str)
+            self.add_widget(TwoLineListItem(text=keys, secondary_text= ',   '.join(list(values_local))))
+    def utc_to_local(self, x):
+        resp = None
+        try:
+            date_record= datetime.strptime(x, '%Y-%m-%d %H:%M:%S')
+            utc_datetime = pytz.timezone('UTC').localize(date_record, is_dst=None)
+            local_datetime_converted = utc_datetime.astimezone(tz=tzlocal())
+            resp = local_datetime_converted.strftime("%Y-%m-%d %H:%M:%S")
+        except Exception as e:
+            resp = x
+        return resp
+
+class InventoryApp(MDApp):
     def build(self):
-        return kv
+        self.theme_cls.primary_palette="Blue"
+        self.theme_cls.primary_hue="A700"
+        self.theme_cls.theme_style = "Dark"
+        return Builder.load_file("./interface/inventory.kv")
 
 if __name__ == '__main__':
     InventoryApp().run()
