@@ -20,13 +20,13 @@ def parse_products(data):
     return [{'id' : rec['id'], 'name' : rec['name'],"provider_id": rec["provider_id"],'description' : rec['description'],'measure' : rec['measure']} for rec in data]
 
 def parse_entries(data):
-    return [{'provider_id':rec["provider_id"],'product_id':rec["product_id"],'quantity':rec["quantity"],'created_at':rec["created_at"]} for rec in data]
+    return [{'provider_id':rec["provider_id"],'product_id':rec["product_id"],'quantity':rec["quantity"],'created_at':rec["created_at"].strftime("%Y-%m-%d %H:%M:%S")} for rec in data]
 
 def parse_outs(data):
-    return [{'provider_id':rec["provider_id"],'product_id':rec["product_id"],'quantity':rec["quantity"],'value' :rec['value'],'created_at':rec["created_at"]} for rec in data]
+    return [{'provider_id':rec["provider_id"],'product_id':rec["product_id"],'quantity':rec["quantity"],'value' :rec['value'],'created_at':rec["created_at"].strftime("%Y-%m-%d %H:%M:%S")} for rec in data]
 
 def parse_stocks_summary(data):
-    return [{'product_id':rec["product_id"],'stock':rec["stock"], 'created_at':rec["created_at"],'updated_at':rec["updated_at"]} for rec in data]
+    return [{'product_id':rec["product_id"],'stock':rec["stock"], 'created_at':rec["created_at"].strftime("%Y-%m-%d %H:%M:%S"),'updated_at':rec["updated_at"].strftime("%Y-%m-%d %H:%M:%S")} for rec in data]
 
 @app.route('/')
 def index():
