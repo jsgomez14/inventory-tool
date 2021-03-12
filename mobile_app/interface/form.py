@@ -5,6 +5,7 @@ from kivymd.uix.textfield import MDTextField
 from kivymd.uix.label import MDLabel
 from kivymd.uix.button import MDRectangleFlatButton
 from datetime import datetime, timezone
+from constants import Constants
 import json
 
 
@@ -47,11 +48,11 @@ class Form(MDGridLayout):
         if key == 'Buscar ID Proveedor':
             ti_key ='provider_id'
             id = '?id='+self.text_inputs[ti_key].text
-            url = 'http://localhost:5000'+'/provider'+id
+            url = Constants.HOST+'/provider'+id
         elif key == 'Buscar ID Producto':
             ti_key='product_id'
             id = '?id='+self.text_inputs['product_id'].text
-            url = 'http://localhost:5000'+'/product'+id
+            url = Constants.HOST+'/product'+id
         if self.text_inputs[ti_key].text != '': UrlRequest(url, on_success=self.parse_object)
     
     def parse_object(self,req,result):
@@ -96,9 +97,9 @@ class Form(MDGridLayout):
             return
                 
         if form_name == 'entry_form':
-            url = 'http://localhost:5000'+'/entry'
+            url = Constants.HOST+'/entry'
         elif form_name == 'out_form':
-            url = 'http://localhost:5000'+'/out'
+            url = Constants.HOST+'/out'
         
             
         headers = {"Content-type": "application/json","Accept": "text/plain"}

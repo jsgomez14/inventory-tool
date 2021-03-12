@@ -7,6 +7,7 @@ from kivy.uix.screenmanager import ScreenManager, Screen
 from kivymd.uix.list import MDList, TwoLineListItem
 from kivy.network.urlrequest import UrlRequest
 from interface.form import Form
+from constants import Constants
 import os
 
 class EntryForm(Form):
@@ -60,9 +61,8 @@ class WindowManager(ScreenManager):
 
 class Stock(MDList):
     def __init__(self, **kwargs):
-        url = 'http://localhost:5000'+'/stock_summary'
-        UrlRequest( url=url#os.getenv("INVENTORY_HOST")
-        , on_success=self.parse_json)
+        url = Constants.HOST +'/stock_summary'
+        UrlRequest(url=url,on_success=self.parse_json)
         super().__init__(**kwargs)
     def parse_json(self,req, result):
         for i in result["result"]:
@@ -84,9 +84,8 @@ class Stock(MDList):
 
 class Entry(MDList):
     def __init__(self, **kwargs):
-        url = 'http://localhost:5000'+'/entry'
-        UrlRequest( url=url#os.getenv("INVENTORY_HOST")
-        , on_success=self.parse_json)
+        url = Constants.HOST +'/entry'
+        UrlRequest( url=url, on_success=self.parse_json)
         super().__init__(**kwargs)
     def parse_json(self,req, result):
         for i in result["result"]:
@@ -108,9 +107,8 @@ class Entry(MDList):
 
 class Out(MDList):
     def __init__(self, **kwargs):
-        url = 'http://localhost:5000'+'/out'
-        UrlRequest( url=url#os.getenv("INVENTORY_HOST")
-        , on_success=self.parse_json)
+        url = Constants.HOST +'/out'
+        UrlRequest(url=url, on_success=self.parse_json)
         super().__init__(**kwargs)
     def parse_json(self,req, result):
         for i in result["result"]:
