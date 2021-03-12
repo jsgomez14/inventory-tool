@@ -13,12 +13,14 @@ class EntryForm(Form):
     def __init__(self, **kwargs):
         super(EntryForm, self).__init__(form_attrs = {
             "form_name": "entry_form",
-            "provider_id": "ID Proveedor",
-            "product_id": "ID Producto",
-            "product_description": "Descripción producto",
-            "entry_date": "Fecha ingreso",
-            "measure": "Unidades",
-            "quantity": "Cantidad"
+            "provider_id": ["ID Proveedor",'int'],
+            "provider_name": ["Proveedor",'str'],
+            "product_id": ["ID Producto",'int'],
+            "product_name":["Producto",'str'],
+            "product_description": ["Descripción producto",'str'],
+            "entry_date": ["Fecha ingreso",'date'],
+            "measure": ["Medida",'str'],
+            "quantity": ["Cantidad",'int']
         }, **kwargs)
     pass
 
@@ -26,13 +28,15 @@ class OutForm(Form):
     def __init__(self, **kwargs):
         super(OutForm, self).__init__(form_attrs = {
             "form_name": "out_form",
-            "provider_id": "ID Proveedor",
-            "product_id": "ID Producto",
-            "product_description": "Descripción producto",
-            "out_date": "Fecha salida",
-            "measure": "Unidades",
-            "quantity": "Cantidad",
-            "value": "Valor"
+            "provider_id": ["ID Proveedor","int"],
+            "provider_name": ["Proveedor", "str"],
+            "product_id": ["ID Producto","int"],
+            "product_name":["Producto", "str"],
+            "product_description": ["Descripción producto","str"],
+            "out_date": ["Fecha salida", "date"],
+            "measure": ["Medida","str"],
+            "quantity": ["Cantidad", "int"],
+            "value": ["Valor", "flt"]
         }, **kwargs)
     pass
 
@@ -65,7 +69,8 @@ class Stock(MDList):
             keys = ',   '.join(list(i.keys()))
             values_str = map(lambda x: str(x),list(i.values()))
             values_local = map(self.utc_to_local,values_str)
-            self.add_widget(TwoLineListItem(text=keys, secondary_text= ',   '.join(list(values_local))))
+            self.add_widget(TwoLineListItem(text=keys, secondary_text= ',   '.join(list(values_local)),
+            font_style='Caption', secondary_font_style ='Overline'))
     def utc_to_local(self, x):
         resp = None
         try:
@@ -88,7 +93,8 @@ class Entry(MDList):
             keys = ',   '.join(list(i.keys()))
             values_str = map(lambda x: str(x),list(i.values()))
             values_local = map(self.utc_to_local,values_str)
-            self.add_widget(TwoLineListItem(text=keys, secondary_text= ',   '.join(list(values_local))))
+            self.add_widget(TwoLineListItem(text=keys, secondary_text= ',   '.join(list(values_local)),
+            font_style='Caption', secondary_font_style ='Overline'))
     def utc_to_local(self, x):
         resp = None
         try:
@@ -111,7 +117,8 @@ class Out(MDList):
             keys = ',   '.join(list(i.keys()))
             values_str = map(lambda x: str(x),list(i.values()))
             values_local = map(self.utc_to_local,values_str)
-            self.add_widget(TwoLineListItem(text=keys, secondary_text= ',   '.join(list(values_local))))
+            self.add_widget(TwoLineListItem(text=keys, secondary_text= ',   '.join(list(values_local)),
+            font_style='Caption', secondary_font_style ='Overline'))
     def utc_to_local(self, x):
         resp = None
         try:
