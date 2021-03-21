@@ -1,3 +1,8 @@
 */venv
 .vscode
 *.pyc
+mobile_app/.buildozer
+.buildozer
+mobile_app/release
+*.apk
+mobile_app/inventory.ico:Zone.Identifier
