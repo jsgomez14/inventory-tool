@@ -1,8 +1,6 @@
 from app import app
 from flask import request
 from flask_pymongo import PyMongo
-import pytz
-from dateutil.tz import tzlocal
 import os
 from datetime import datetime,timezone 
 
@@ -28,8 +26,17 @@ def parse_outs(data):
     return [{'provider_id':rec["provider_id"],'product_id':rec["product_id"],'quantity':rec["quantity"],'value' :rec['value'],'created_at':rec["created_at"].strftime("%Y-%m-%d %H:%M:%S")} for rec in data]
 
 def parse_stocks_summary(data):
-    # 'products': [{'_id': ObjectId('604ab8b85459599435547495'), 'id': 2, 'name': 'Oreo', 'provider_id': 2, 'description': 'Oreo de Chocolate', 'measure': 'paquete'}]
-    return [{'product_id':rec["product_id"],'product_name':rec["products"][0]["name"],'stock':rec["stock"], 'created_at':rec["created_at"].strftime("%Y-%m-%d %H:%M:%S"),'updated_at':rec["updated_at"].strftime("%Y-%m-%d %H:%M:%S")} for rec in data]
+    resp = None
+    try:
+        resp= [{'product_id':rec["product_id"],'product_name':rec["products"][0]["name"], 'provider_id':rec["products"][0]["provider_id"],'stock':rec["stock"], 'created_at':rec["created_at"].strftime("%Y-%m-%d %H:%M:%S"),'updated_at':rec["updated_at"].strftime("%Y-%m-%d %H:%M:%S")} for rec in data]
+    except:
+        resp=[{'product_id':rec["product_id"], 'stock':rec["stock"], 'created_at':rec["created_at"].strftime("%Y-%m-%d %H:%M:%S"),'updated_at':rec["updated_at"].strftime("%Y-%m-%d %H:%M:%S")} for rec in data]
+    return resp
+
+
+def parse_stocks_summary2(data):
+    return [{'product_id':rec["product_id"], 'stock':rec["stock"], 'created_at':rec["created_at"].strftime("%Y-%m-%d %H:%M:%S"),'updated_at':rec["updated_at"].strftime("%Y-%m-%d %H:%M:%S")} for rec in data]
+
 
 @app.route('/')
 def index():
@@ -74,10 +81,12 @@ def create_entry():
     result =None
     is_new_prov = False
     new_entry = request.get_json()
+    print(" New Entry: ",new_entry)
     new_provider = {'id': new_entry["provider_id"], 'name': new_entry["provider_name"]}
     new_product = {'id': new_entry["product_id"],"name":new_entry["product_name"],"provider_id": new_entry["provider_id"],"description":new_entry["product_description"],"measure":new_entry["measure"]}
 
     provider = parse_providers(providers.find({'id': new_entry["provider_id"]}))
+    print("PROVIDER: ",provider)
     if not provider:
         is_new_prov = True
         result= {'result' : "New provider, product and entry have been created succesfully."}
@@ -88,38 +97,33 @@ def create_entry():
             result = {'result': provider[0]["name"]+ " has a new product. Entry created succesfully"}
         products.insert_one(new_product)
     
+    utc_datetime = datetime.strptime(new_entry['entry_date'], '%Y-%m-%d %H:%M:%S')
 
-
-    local_datetime = datetime.strptime(new_entry['entry_date'], '%Y-%m-%d %H:%M:%S')
-    curr_time = local_datetime.astimezone(tz=tzlocal())
-    utc_datetime_converted = curr_time.astimezone(tz=timezone.utc)
-
-    entry = {'provider_id':new_entry["provider_id"],'product_id':new_entry["product_id"],'quantity':new_entry["quantity"],'created_at':utc_datetime_converted}
+    entry = {'provider_id':new_entry["provider_id"],'product_id':new_entry["product_id"],'quantity':new_entry["quantity"],'created_at':utc_datetime}
     entries.insert_one(entry)
-    stock_summary = parse_stocks_summary(stocks_summary.find({'product_id': new_entry["product_id"]}))
+    stock_summary = parse_stocks_summary2(stocks_summary.find({'product_id': new_entry["product_id"]}))
+    print("Stock Summary: ", stock_summary)
     if stock_summary:
-        stocks_summary.update_one({'product_id': new_entry["product_id"]},{"$set": {'stock' : stock_summary[0]["stock"]+new_entry["quantity"], 'updated_at': utc_datetime_converted}})
+        stocks_summary.update_one({'product_id': new_entry["product_id"]},{"$set": {'stock' : stock_summary[0]["stock"]+new_entry["quantity"], 'updated_at': utc_datetime}})
     else:
-        stocks_summary.insert_one({'product_id': new_entry["product_id"],'stock': new_entry["quantity"],'created_at':utc_datetime_converted,'updated_at':utc_datetime_converted})
+        stocks_summary.insert_one({'product_id': new_entry["product_id"],'stock': new_entry["quantity"],'created_at':utc_datetime,'updated_at':utc_datetime})
     return result if result is not None else {'result': 'Entry created succesfully'}
 
 @app.route('/out', methods=["POST"])
 def create_out():
     result =None
     new_out = request.get_json()
+    print(new_out)
     provider = parse_providers(providers.find({'id': new_out["provider_id"]}))
     product = parse_products(products.find({'id': new_out["product_id"]}))
-    stock_summary = parse_stocks_summary(stocks_summary.find({'product_id': new_out["product_id"]}))
-    local_datetime = datetime.strptime(new_out['out_date'], '%Y-%m-%d %H:%M:%S')
-    curr_time = local_datetime.astimezone(tz=tzlocal())
-    utc_datetime_converted = curr_time.astimezone(tz=timezone.utc)
-    print("LOCAL: ", local_datetime, 'UTC: ', utc_datetime_converted.strftime('%Y-%m-%d %H:%M:%S'))
-
+    stock_summary = parse_stocks_summary2(stocks_summary.find({'product_id': new_out["product_id"]}))
+    utc_datetime = datetime.strptime(new_out['out_date'], '%Y-%m-%d %H:%M:%S')
+    
     if provider and product and stock_summary:
         if stock_summary[0]["stock"]-new_out["quantity"] >= 0:
-            out = {'provider_id':new_out["provider_id"],'product_id':new_out["product_id"],'quantity':new_out["quantity"],'value':new_out["value"],'created_at':utc_datetime_converted}
+            out = {'provider_id':new_out["provider_id"],'product_id':new_out["product_id"],'quantity':new_out["quantity"],'value':new_out["value"],'created_at':utc_datetime}
             outs.insert_one(out)
-            stocks_summary.update_one({'product_id': new_out["product_id"]},{"$set": {'stock' : stock_summary[0]["stock"]-new_out["quantity"], 'updated_at': utc_datetime_converted}})
+            stocks_summary.update_one({'product_id': new_out["product_id"]},{"$set": {'stock' : stock_summary[0]["stock"]-new_out["quantity"], 'updated_at': utc_datetime}})
             result = {"result": "out has been created succesfully."}
         else:
             result = {"result": "ERROR1: OUT is exceding the actual stock."}
