@@ -20,15 +20,15 @@ def parse_products(data):
     return [{'id' : rec['id'], 'name' : rec['name'],"provider_id": rec["provider_id"],'description' : rec['description'],'measure' : rec['measure']} for rec in data]
 
 def parse_entries(data):
-    return [{'provider_id':rec["provider_id"],'product_id':rec["product_id"],'quantity':rec["quantity"],'created_at':rec["created_at"].strftime("%Y-%m-%d %H:%M:%S")} for rec in data]
+    return [{'provider_id':rec["provider_id"],'provider_name':rec["provider"]["name"],'product_id':rec["product_id"],'product_name':rec["product"]["name"],'quantity':rec["quantity"],'created_at':rec["created_at"].strftime("%Y-%m-%d %H:%M:%S")} for rec in data]
 
 def parse_outs(data):
-    return [{'provider_id':rec["provider_id"],'product_id':rec["product_id"],'quantity':rec["quantity"],'value' :rec['value'],'created_at':rec["created_at"].strftime("%Y-%m-%d %H:%M:%S")} for rec in data]
+    return [{'provider_id':rec["provider_id"],'provider_name':rec["provider"]["name"],'product_id':rec["product_id"],'product_name':rec["product"]["name"],'quantity':rec["quantity"],'value' :rec['value'],'created_at':rec["created_at"].strftime("%Y-%m-%d %H:%M:%S")} for rec in data]
 
 def parse_stocks_summary(data):
     resp = None
     try:
-        resp= [{'product_id':rec["product_id"],'product_name':rec["products"][0]["name"], 'provider_id':rec["products"][0]["provider_id"],'stock':rec["stock"], 'created_at':rec["created_at"].strftime("%Y-%m-%d %H:%M:%S"),'updated_at':rec["updated_at"].strftime("%Y-%m-%d %H:%M:%S")} for rec in data]
+        resp= [{'product_id':rec["product_id"],'product_name':rec["product"]["name"], 'provider_id':rec["product"]["provider_id"],'provider_name':rec["provider"]["name"],'stock':rec["stock"], 'created_at':rec["created_at"].strftime("%Y-%m-%d %H:%M:%S"),'updated_at':rec["updated_at"].strftime("%Y-%m-%d %H:%M:%S")} for rec in data]
     except:
         resp=[{'product_id':rec["product_id"], 'stock':rec["stock"], 'created_at':rec["created_at"].strftime("%Y-%m-%d %H:%M:%S"),'updated_at':rec["updated_at"].strftime("%Y-%m-%d %H:%M:%S")} for rec in data]
     return resp
@@ -60,11 +60,43 @@ def get_providers():
 
 @app.route('/entry', methods=["GET"])
 def get_entries():
-    return {'result' : parse_entries(entries.find())}
+    pipeline = [{'$lookup': 
+                {'from' : 'product',
+                 'localField' : 'product_id',
+                 'foreignField' : 'id',
+                 'as' : 'product'}},
+                {'$unwind':"$product" },
+                {
+                    '$lookup':{
+                        'from': "provider", 
+                        'localField': "provider_id", 
+                        'foreignField': "id",
+                        'as': "provider"
+                    }
+                },
+                {'$unwind':"$provider"},
+             ]
+    return {'result' : parse_entries(entries.aggregate(pipeline))}
 
 @app.route('/out', methods=["GET"])
 def get_outs():
-    return {'result' : parse_outs(outs.find())}
+    pipeline = [{'$lookup': 
+                {'from' : 'product',
+                 'localField' : 'product_id',
+                 'foreignField' : 'id',
+                 'as' : 'product'}},
+                {'$unwind':"$product" },
+                {
+                    '$lookup':{
+                        'from': "provider", 
+                        'localField': "provider_id", 
+                        'foreignField': "id",
+                        'as': "provider"
+                    }
+                },
+                {'$unwind':"$provider"},
+             ]
+    return {'result' : parse_outs(outs.aggregate(pipeline))}
 
 @app.route('/stock_summary', methods=["GET"])
 def get_stocks_summary():
@@ -72,7 +104,17 @@ def get_stocks_summary():
                 {'from' : 'product',
                  'localField' : 'product_id',
                  'foreignField' : 'id',
-                 'as' : 'products'}}
+                 'as' : 'product'}},
+                {'$unwind':"$product" },
+                {
+                    '$lookup':{
+                        'from': "provider", 
+                        'localField': "product.provider_id", 
+                        'foreignField': "id",
+                        'as': "provider"
+                    }
+                },
+                {'$unwind':"$provider"},
              ]
     return {'result' : parse_stocks_summary(stocks_summary.aggregate(pipeline))}
 
